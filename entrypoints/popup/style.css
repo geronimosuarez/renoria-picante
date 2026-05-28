@@ -1,0 +1,17 @@
+html,
+body {
+  margin: 0;
+  width: 400px;
+  height: 600px;
+  background: #1c1814;
+  overflow: hidden;
+}
+
+#root {
+  width: 400px;
+  height: 600px;
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -36,6 +36,7 @@ export interface PersistedState {
   today: FocusStats;
   history: FocusStats[]; // días previos (más recientes primero)
   userRules: CategoryRule[]; // overrides del usuario
+  onboarded: boolean; // true una vez que el usuario completó el onboarding
   settings: {
     idleThresholdSeconds: number; // umbral para considerar al usuario inactivo
   };
