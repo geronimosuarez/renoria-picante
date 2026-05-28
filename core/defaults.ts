@@ -6,7 +6,8 @@ import type { CityState, FocusStats, PersistedState } from './types';
 export const DEFAULT_IDLE_THRESHOLD_SECONDS = 60;
 
 export function emptyCity(): CityState {
-  return { growthPoints: 0, level: 1, buildings: 0 };
+  // El usuario arranca con una sola casita; el resto se compra más adelante.
+  return { growthPoints: 0, level: 1, buildings: [{ type: 'house' }] };
 }
 
 export function emptyStats(date: string): FocusStats {
