@@ -29,7 +29,7 @@ export function Home({ state }: { state: PersistedState }) {
       }}
     >
       <div style={{ position: 'absolute', inset: 0 }}>
-        <CityCanvas ruinLevel={ruinLevel} seed={31} />
+        <CityCanvas buildings={city.buildings} ruinLevel={ruinLevel} seed={31} />
       </div>
 
       {/* header / points */}
@@ -102,7 +102,7 @@ export function Home({ state }: { state: PersistedState }) {
         >
           Level {city.level}
           <br />
-          {city.buildings} buildings
+          {city.buildings.length} buildings
         </div>
       </div>
 

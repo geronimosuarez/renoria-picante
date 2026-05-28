@@ -32,11 +32,19 @@ export interface FocusStats {
   byDomain: DomainTime[];
 }
 
+/** Tipo de construcción que el usuario puede tener en su ciudad. */
+export type BuildingType = 'house' | 'building' | 'skybuilding';
+
+/** Una construcción concreta colocada en la ciudad. */
+export interface CityBuilding {
+  type: BuildingType;
+}
+
 /** Estado de la ciudad — agnóstico al render. */
 export interface CityState {
   growthPoints: number; // puntos acumulados de foco productivo
   level: number; // etapa de la ciudad
-  buildings: number; // elementos desbloqueados (abstracto)
+  buildings: CityBuilding[]; // construcciones que el usuario posee (en orden de adquisición)
 }
 
 /** Estado persistido completo en chrome.storage.local. */

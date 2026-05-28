@@ -19,6 +19,10 @@ export async function loadState(today: string): Promise<PersistedState> {
   if (!stored) return initialState(today);
   // Compatibilidad con estados previos al flag de onboarding.
   if (typeof stored.onboarded !== 'boolean') stored.onboarded = false;
+  // Compatibilidad: `buildings` pasó de número (contador) a lista tipada.
+  if (!Array.isArray(stored.city?.buildings)) {
+    stored.city = { ...stored.city, buildings: [{ type: 'house' }] };
+  }
   return rollover(stored, today);
 }
 
