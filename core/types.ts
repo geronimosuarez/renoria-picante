@@ -34,10 +34,16 @@ export interface FocusStats {
 
 /** Estado de la ciudad — agnóstico al render. */
 export interface CityState {
-  growthPoints: number; // puntos acumulados de foco productivo
-  level: number; // etapa de la ciudad
-  buildings: number; // elementos desbloqueados (abstracto)
+  coins: number; // balance gastable (float; la UI lo muestra floor)
+  buildings: number; // edificios comprados (abstracto)
+  level: number; // derivado de buildings
+  condition: number; // 0–100, salud de la ciudad (alimenta ruinLevel del render)
 }
+
+/** Acción que el popup le pide al service worker (único escritor). */
+export type CityAction =
+  | { type: 'BUY_BUILDING' }
+  | { type: 'REPAIR'; coins: number }; // monedas a gastar (reparación parcial)
 
 /** Estado persistido completo en chrome.storage.local. */
 export interface PersistedState {

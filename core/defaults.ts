@@ -6,7 +6,7 @@ import type { CityState, FocusStats, PersistedState } from './types';
 export const DEFAULT_IDLE_THRESHOLD_SECONDS = 60;
 
 export function emptyCity(): CityState {
-  return { growthPoints: 0, level: 1, buildings: 0 };
+  return { coins: 0, buildings: 0, level: 1, condition: 100 };
 }
 
 export function emptyStats(date: string): FocusStats {

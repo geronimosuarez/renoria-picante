@@ -11,7 +11,7 @@ export function Home({ state }: { state: PersistedState }) {
   const { city, today } = state;
   const focus = today.productiveSeconds + today.distractingSeconds;
   const ruinLevel = focus > 0 ? Math.min(0.4, today.distractingSeconds / focus) : 0.1;
-  const points = Math.round(city.growthPoints);
+  const points = Math.floor(city.coins);
 
   return (
     <div
