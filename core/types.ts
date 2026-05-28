@@ -1,10 +1,19 @@
 /** Clasificación de un sitio. */
 export type SiteCategory = 'productive' | 'distracting' | 'neutral';
 
-/** Regla de clasificación (default del sistema u override del usuario). */
+/** Regla de clasificación definida por el usuario. */
 export interface CategoryRule {
   pattern: string; // dominio, ej "youtube.com"
   category: SiteCategory;
+}
+
+/**
+ * Sitio de la lista curada: solo alimenta las sugerencias del onboarding.
+ * NO participa de `classify` (la clasificación es 100% dirigida por el usuario).
+ */
+export interface CuratedSite {
+  pattern: string;
+  suggested: 'productive' | 'distracting';
 }
 
 /** Tiempo acumulado por dominio dentro de un día. */
@@ -36,6 +45,7 @@ export interface PersistedState {
   today: FocusStats;
   history: FocusStats[]; // días previos (más recientes primero)
   userRules: CategoryRule[]; // overrides del usuario
+  onboarded: boolean; // true una vez que el usuario completó el onboarding
   settings: {
     idleThresholdSeconds: number; // umbral para considerar al usuario inactivo
   };
