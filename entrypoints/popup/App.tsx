@@ -2,16 +2,22 @@ import { useEffect, useState } from 'react';
 import type { PersistedState } from '../../core/types';
 import { loadState, subscribe, updateState } from '../../storage/storage';
 import { buildUserRules } from '../../core/onboarding';
+import { purchase } from '../../core/market';
+import type { MarketItemKey } from '../../core/market';
 import { Onboarding } from '../../components/renoria/Onboarding';
 import type { Selections } from '../../components/renoria/Onboarding';
+import { Market } from '../../components/renoria/Market';
 import { Home } from './Home';
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+type View = 'home' | 'market';
+
 export function App() {
   const [state, setState] = useState<PersistedState | null>(null);
+  const [view, setView] = useState<View>('home');
 
   useEffect(() => {
     loadState(today()).then(setState);
@@ -28,5 +34,19 @@ export function App() {
     return <Onboarding onComplete={handleComplete} />;
   }
 
-  return <Home state={state} />;
+  if (view === 'market') {
+    const handleBuy = (key: MarketItemKey) => {
+      updateState(today(), (s) => purchase(s, key)).then(setState);
+    };
+    return (
+      <Market
+        state={state}
+        onBuy={handleBuy}
+        onBack={() => setView('home')}
+        onViewCity={() => setView('home')}
+      />
+    );
+  }
+
+  return <Home state={state} onOpenMarket={() => setView('market')} />;
 }
