@@ -103,6 +103,13 @@ export default defineBackground(() => {
     if (alarm.name === 'flush') void flush(Date.now());
   });
 
+  // El popup pide persistir lo acumulado (al abrir y cada pocos segundos), así
+  // el balance real alcanza a la proyección en vivo sin esperar un evento del
+  // navegador. El SW sigue siendo el único escritor del estado de la ciudad.
+  browser.runtime.onMessage.addListener((msg: { type?: string }) => {
+    if (msg?.type === 'FLUSH') void flush(Date.now());
+  });
+
   void setActiveTab(Date.now());
 
   // Badge de la toolbar: color verde Renoria; texto blanco para contraste.
