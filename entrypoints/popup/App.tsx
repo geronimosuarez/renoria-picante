@@ -21,7 +21,18 @@ export function App() {
 
   useEffect(() => {
     loadState(today()).then(setState);
-    return subscribe(setState);
+    const unsubscribe = subscribe(setState);
+    // Pedirle al SW que persista lo acumulado al abrir el popup y cada 5s, así
+    // el balance guardado alcanza a la proyección en vivo (useLivePoints) y no
+    // "se resetea" al cerrar/reabrir.
+    // El SW puede estar dormido o sin listener todavía: el rechazo es benigno.
+    const requestFlush = () => browser.runtime.sendMessage({ type: 'FLUSH' }).catch(() => {});
+    requestFlush();
+    const id = setInterval(requestFlush, 5000);
+    return () => {
+      unsubscribe();
+      clearInterval(id);
+    };
   }, []);
 
   if (!state) return null;

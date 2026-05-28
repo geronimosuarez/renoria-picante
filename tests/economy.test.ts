@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { applyProductiveTime } from '../core/economy';
+import { POINTS_PER_PRODUCTIVE_SECOND } from '../core/balance';
 import { emptyCity } from '../core/defaults';
 
 describe('applyProductiveTime', () => {
-  it('suma 2 puntos por segundo productivo', () => {
-    expect(applyProductiveTime(emptyCity(), 1).growthPoints).toBe(2);
+  it('suma POINTS_PER_PRODUCTIVE_SECOND por segundo productivo', () => {
+    expect(applyProductiveTime(emptyCity(), 1).growthPoints).toBe(POINTS_PER_PRODUCTIVE_SECOND);
   });
-  it('es proporcional al delta (10s → 20 puntos)', () => {
-    expect(applyProductiveTime(emptyCity(), 10).growthPoints).toBe(20);
+  it('es proporcional al delta (10s)', () => {
+    expect(applyProductiveTime(emptyCity(), 10).growthPoints).toBe(10 * POINTS_PER_PRODUCTIVE_SECOND);
   });
   it('no cambia nada con delta <= 0', () => {
     const c = emptyCity();
