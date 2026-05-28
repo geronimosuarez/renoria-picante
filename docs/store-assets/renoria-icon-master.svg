@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bBg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0" stop-color="#4cae70"></stop>
+      <stop offset="1" stop-color="#2c794a"></stop>
+    </linearGradient>
+    <radialGradient id="bSun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe3a6"></stop>
+      <stop offset="0.5" stop-color="#ffc34f" stop-opacity="0.55"></stop>
+      <stop offset="1" stop-color="#ffc34f" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bBg)"></rect>
+  <circle cx="356" cy="170" r="140" fill="url(#bSun)"></circle>
+  <circle cx="356" cy="170" r="74" fill="#ffd079"></circle>
+  <ellipse cx="256" cy="432" rx="206" ry="40" fill="#21563477"></ellipse>
+  
+  <rect x="204" y="150" width="104" height="252" rx="20" fill="#f3deb1"></rect>
+  
+  <rect x="250" y="112" width="9" height="44" rx="4" fill="#c2703f"></rect>
+  <path d="M259 116 L300 130 L259 144 Z" fill="#ffc24d"></path>
+  
+  <g fill="#ffc24d">
+    <rect x="223" y="196" width="23" height="27" rx="6"></rect><rect x="266" y="196" width="23" height="27" rx="6"></rect>
+    <rect x="223" y="250" width="23" height="27" rx="6"></rect><rect x="266" y="250" width="23" height="27" rx="6"></rect>
+    <rect x="223" y="304" width="23" height="27" rx="6"></rect><rect x="266" y="304" width="23" height="27" rx="6"></rect>
+  </g>
+  <rect x="8" y="8" width="496" height="496" rx="110" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="3"></rect>
+</svg>
