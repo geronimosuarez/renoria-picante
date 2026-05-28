@@ -1,8 +1,31 @@
-import type { PersistedState } from '../../core/types';
+import { useEffect, useState } from 'react';
+import type { CategoryRule, PersistedState } from '../../core/types';
+import { classify, domainFromUrl } from '../../core/classifier';
+import { POINTS_PER_PRODUCTIVE_SECOND } from '../../core/balance';
 import { FONT_BODY, FONT_DISPLAY, INK, T } from '../../components/renoria/tokens';
 import { Icon } from '../../components/renoria/Icon';
 import { CityCanvas } from '../../components/renoria/CityCanvas';
+import { useLivePoints } from '../../components/renoria/useCountUp';
 import { formatDuration } from '../../components/format';
+
+// Ritmo de puntos en vivo para el popup: el balance solo crece cuando la tab
+// activa es productiva (igual que lo que acumula el SW). 2/seg si lo es, 0 si no.
+function useProductiveRate(userRules: CategoryRule[]): number {
+  const [rate, setRate] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (cancelled) return;
+      const domain = tab?.url ? domainFromUrl(tab.url) : '';
+      const productive = classify(domain, userRules) === 'productive';
+      setRate(productive ? POINTS_PER_PRODUCTIVE_SECOND : 0);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userRules]);
+  return rate;
+}
 
 // Vista principal del popup tras el onboarding. Reusa la ciudad three.js y
 // muestra los puntos de la ciudad + el resumen de foco del día.
@@ -17,7 +40,8 @@ export function Home({
   const { city, today } = state;
   const focus = today.productiveSeconds + today.distractingSeconds;
   const ruinLevel = focus > 0 ? Math.min(0.4, today.distractingSeconds / focus) : 0.1;
-  const points = Math.floor(city.growthPoints);
+  const rate = useProductiveRate(state.userRules);
+  const points = Math.floor(useLivePoints(city.growthPoints, rate));
 
   return (
     <div
