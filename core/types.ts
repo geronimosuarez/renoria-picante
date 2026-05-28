@@ -32,18 +32,23 @@ export interface FocusStats {
   byDomain: DomainTime[];
 }
 
+/** Tipo de construcción que el usuario puede tener en su ciudad. */
+export type BuildingType = 'house' | 'building' | 'skybuilding';
+
+/** Una construcción concreta colocada en la ciudad. */
+export interface CityBuilding {
+  type: BuildingType;
+}
+
 /** Estado de la ciudad — agnóstico al render. */
 export interface CityState {
-  coins: number; // balance gastable (float; la UI lo muestra floor)
-  buildings: number; // edificios comprados (abstracto)
-  level: number; // derivado de buildings
-  condition: number; // 0–100, salud de la ciudad (alimenta ruinLevel del render)
+  growthPoints: number; // puntos acumulados de foco productivo
+  level: number; // etapa de la ciudad
+  buildings: CityBuilding[]; // construcciones que el usuario posee (en orden de adquisición)
 }
 
 /** Acción que el popup le pide al service worker (único escritor). */
-export type CityAction =
-  | { type: 'BUY_BUILDING' }
-  | { type: 'REPAIR'; coins: number }; // monedas a gastar (reparación parcial)
+export type CityAction = { type: 'BUY_BUILDING' } | { type: 'REPAIR'; coins: number }; // monedas a gastar (reparación parcial)
 
 /** Estado persistido completo en chrome.storage.local. */
 export interface PersistedState {

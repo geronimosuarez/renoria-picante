@@ -1,10 +1,14 @@
 import * as THREE from 'three';
+import type { BuildingType, CityBuilding } from '../../core/types';
 
 // Ciudad low-poly "golden-hour" en three.js (portada de renoria-shared.jsx).
 // Crece al montar (los edificios suben desde el suelo) y deja ruinas en
-// proporción a `ruinLevel`. Devuelve un handle con dispose().
+// proporción a `ruinLevel`. Sólo se renderizan las construcciones que el
+// usuario posee (`buildings`), cada una según su tipo. Devuelve un handle
+// con dispose().
 
 export interface CityOptions {
+  buildings?: CityBuilding[]; // construcciones que posee el usuario (en orden)
   ruinLevel?: number; // 0..1 — proporción de edificios en ruina
   seed?: number;
 }
@@ -34,6 +38,7 @@ export function createCity(container: HTMLElement, opts: CityOptions = {}): City
   const W = container.clientWidth || 380;
   const H = container.clientHeight || 300;
   const ruinLevel = opts.ruinLevel ?? 0.18;
+  const owned = opts.buildings ?? [{ type: 'house' as const }];
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x2a2f4a, 16, 34);
@@ -101,66 +106,83 @@ export function createCity(container: HTMLElement, opts: CityOptions = {}): City
   const roofColors = [0x9a4f3a, 0x8c4233, 0xb06a3e, 0x7e5230];
   const builds: Build[] = [];
 
-  // edificios sobre anillos concéntricos
+  // Dimensiones base por tipo de construcción.
+  const dims: Record<BuildingType, { w: number; d: number; hMin: number; hMax: number }> = {
+    house: { w: 0.8, d: 0.8, hMin: 0.8, hMax: 1.1 },
+    building: { w: 0.95, d: 0.95, hMin: 1.8, hMax: 2.4 },
+    skybuilding: { w: 0.85, d: 0.85, hMin: 3.2, hMax: 4.0 },
+  };
+
+  // Lotes disponibles sobre anillos concéntricos: el primero queda cerca de la
+  // plaza y los siguientes se van llenando hacia afuera a medida que se compran.
   const rings = [
-    { r: 3.4, n: 8, hMin: 1.4, hMax: 2.6 },
-    { r: 5.6, n: 12, hMin: 1.0, hMax: 2.0 },
-    { r: 7.2, n: 14, hMin: 0.7, hMax: 1.3 },
+    { r: 3.4, n: 8 },
+    { r: 5.6, n: 12 },
+    { r: 7.2, n: 14 },
   ];
-  let idx = 0;
-  const total = rings.reduce((s, r) => s + r.n, 0);
+  const lots: { x: number; z: number }[] = [];
   rings.forEach((ring) => {
     for (let i = 0; i < ring.n; i++) {
       const a = (i / ring.n) * Math.PI * 2 + rnd() * 0.25;
       const r = ring.r + (rnd() - 0.5) * 0.7;
-      const x = Math.cos(a) * r;
-      const z = Math.sin(a) * r;
-      const isRuin = idx / total > 1 - ruinLevel && rnd() > 0.35;
-      idx++;
-      const w = 0.7 + rnd() * 0.5;
-      const d = 0.7 + rnd() * 0.5;
-      const h = ring.hMin + rnd() * (ring.hMax - ring.hMin);
-      const g = new THREE.Group();
-      g.position.set(x, 0, z);
-      g.lookAt(0, 0, 0);
-      g.rotateY(Math.PI / 2);
+      lots.push({ x: Math.cos(a) * r, z: Math.sin(a) * r });
+    }
+  });
 
-      if (isRuin) {
-        // rota, inclinada, oscura — sin luces
-        const bodyH = h * (0.4 + rnd() * 0.3);
-        const body = new THREE.Mesh(
-          new THREE.BoxGeometry(w, bodyH, d),
-          new THREE.MeshStandardMaterial({ color: 0x595048, roughness: 1 }),
+  // Sólo renderizamos las construcciones que el usuario posee.
+  const count = Math.min(owned.length, lots.length);
+  for (let idx = 0; idx < count; idx++) {
+    const type = owned[idx].type;
+    const lot = lots[idx];
+    const isRuin = idx / count > 1 - ruinLevel && rnd() > 0.35;
+    const dim = dims[type];
+    const w = dim.w + (rnd() - 0.5) * 0.1;
+    const d = dim.d + (rnd() - 0.5) * 0.1;
+    const h = dim.hMin + rnd() * (dim.hMax - dim.hMin);
+
+    const g = new THREE.Group();
+    g.position.set(lot.x, 0, lot.z);
+    g.lookAt(0, 0, 0);
+    g.rotateY(Math.PI / 2);
+
+    if (isRuin) {
+      // rota, inclinada, oscura — sin luces
+      const bodyH = h * (0.4 + rnd() * 0.3);
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(w, bodyH, d),
+        new THREE.MeshStandardMaterial({ color: 0x595048, roughness: 1 }),
+      );
+      body.position.y = bodyH / 2;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      body.rotation.z = (rnd() - 0.5) * 0.18;
+      g.add(body);
+      // escombros
+      for (let k = 0; k < 3; k++) {
+        const rb = new THREE.Mesh(
+          new THREE.BoxGeometry(0.22, 0.22, 0.22),
+          new THREE.MeshStandardMaterial({ color: 0x4a423b, roughness: 1 }),
         );
-        body.position.y = bodyH / 2;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        body.rotation.z = (rnd() - 0.5) * 0.18;
-        g.add(body);
-        // escombros
-        for (let k = 0; k < 3; k++) {
-          const rb = new THREE.Mesh(
-            new THREE.BoxGeometry(0.22, 0.22, 0.22),
-            new THREE.MeshStandardMaterial({ color: 0x4a423b, roughness: 1 }),
-          );
-          rb.position.set((rnd() - 0.5) * w, 0.1, (rnd() - 0.5) * d);
-          rb.rotation.set(rnd(), rnd(), rnd());
-          g.add(rb);
-        }
-        builds.push({ g, full: 1, lit: [] });
-      } else {
-        const col = goodColors[(rnd() * goodColors.length) | 0];
-        const body = new THREE.Mesh(
-          new THREE.BoxGeometry(w, h, d),
-          new THREE.MeshStandardMaterial({ color: col, roughness: 0.75 }),
-        );
-        body.position.y = h / 2;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        g.add(body);
-        // techo
+        rb.position.set((rnd() - 0.5) * w, 0.1, (rnd() - 0.5) * d);
+        rb.rotation.set(rnd(), rnd(), rnd());
+        g.add(rb);
+      }
+      builds.push({ g, full: 1, lit: [] });
+    } else {
+      const col = goodColors[(rnd() * goodColors.length) | 0];
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color: col, roughness: 0.75 }),
+      );
+      body.position.y = h / 2;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      g.add(body);
+
+      if (type === 'house') {
+        // casita: techo a dos aguas (cono de 4 lados)
         const roof = new THREE.Mesh(
-          new THREE.ConeGeometry(w * 0.78, 0.5 + rnd() * 0.4, 4),
+          new THREE.ConeGeometry(w * 0.82, 0.5 + rnd() * 0.3, 4),
           new THREE.MeshStandardMaterial({
             color: roofColors[(rnd() * roofColors.length) | 0],
             roughness: 0.9,
@@ -170,28 +192,47 @@ export function createCity(container: HTMLElement, opts: CityOptions = {}): City
         roof.rotation.y = Math.PI / 4;
         roof.castShadow = true;
         g.add(roof);
-        // ventanas que brillan
-        const lit: THREE.Mesh[] = [];
-        const rows = Math.max(1, Math.floor(h / 0.7));
-        for (let ry = 0; ry < rows; ry++) {
-          const win = new THREE.Mesh(
-            new THREE.PlaneGeometry(w * 0.62, 0.16),
-            new THREE.MeshStandardMaterial({
-              color: 0xffd98a,
-              emissive: 0xffb347,
-              emissiveIntensity: 1.3,
-            }),
+      } else {
+        // edificio / rascacielos: azotea plana
+        const cap = new THREE.Mesh(
+          new THREE.BoxGeometry(w * 1.02, 0.12, d * 1.02),
+          new THREE.MeshStandardMaterial({ color: 0x6b5f52, roughness: 0.9 }),
+        );
+        cap.position.y = h + 0.06;
+        cap.castShadow = true;
+        g.add(cap);
+        if (type === 'skybuilding') {
+          // antena del rascacielos
+          const mast = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.03, 0.03, 0.7, 6),
+            new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.6 }),
           );
-          win.position.set(0, 0.45 + ry * 0.62, d / 2 + 0.001);
-          g.add(win);
-          lit.push(win);
+          mast.position.y = h + 0.45;
+          g.add(mast);
         }
-        builds.push({ g, full: 1, lit });
       }
-      g.scale.y = 0.001;
-      city.add(g);
+
+      // ventanas que brillan — más filas cuanto más alto es el edificio
+      const lit: THREE.Mesh[] = [];
+      const rows = Math.max(1, Math.floor(h / 0.62));
+      for (let ry = 0; ry < rows; ry++) {
+        const win = new THREE.Mesh(
+          new THREE.PlaneGeometry(w * 0.62, 0.16),
+          new THREE.MeshStandardMaterial({
+            color: 0xffd98a,
+            emissive: 0xffb347,
+            emissiveIntensity: 1.3,
+          }),
+        );
+        win.position.set(0, 0.4 + ry * 0.62, d / 2 + 0.001);
+        g.add(win);
+        lit.push(win);
+      }
+      builds.push({ g, full: 1, lit });
     }
-  });
+    g.scale.y = 0.001;
+    city.add(g);
+  }
 
   // árboles
   for (let i = 0; i < 10; i++) {

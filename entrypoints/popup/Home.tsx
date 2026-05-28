@@ -7,7 +7,13 @@ import { formatDuration } from '../../components/format';
 // Vista principal del popup tras el onboarding. Reusa la ciudad three.js y
 // muestra los puntos de la ciudad + el resumen de foco del día.
 // (El detalle completo de stats es una iteración posterior — Task 8 del plan.)
-export function Home({ state }: { state: PersistedState }) {
+export function Home({
+  state,
+  onOpenMarket,
+}: {
+  state: PersistedState;
+  onOpenMarket: () => void;
+}) {
   const { city, today } = state;
   const focus = today.productiveSeconds + today.distractingSeconds;
   const ruinLevel = focus > 0 ? Math.min(0.4, today.distractingSeconds / focus) : 0.1;
@@ -29,7 +35,7 @@ export function Home({ state }: { state: PersistedState }) {
       }}
     >
       <div style={{ position: 'absolute', inset: 0 }}>
-        <CityCanvas ruinLevel={ruinLevel} seed={31} />
+        <CityCanvas buildings={city.buildings} ruinLevel={ruinLevel} seed={31} />
       </div>
 
       {/* header / points */}
@@ -102,7 +108,7 @@ export function Home({ state }: { state: PersistedState }) {
         >
           Level {city.level}
           <br />
-          {city.buildings} buildings
+          {city.buildings.length} buildings
         </div>
       </div>
 
@@ -116,8 +122,32 @@ export function Home({ state }: { state: PersistedState }) {
           background: 'linear-gradient(180deg, transparent, oklch(0.32 0.06 158 / 0.72) 50%)',
         }}
       >
-        <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: 18, color: '#fff' }}>
-          Today
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: 18, color: '#fff' }}>
+            Today
+          </div>
+          <button
+            onClick={onOpenMarket}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              borderRadius: 12,
+              border: 'none',
+              cursor: 'pointer',
+              background: '#fff',
+              color: T.greenDeep,
+              fontFamily: FONT_DISPLAY,
+              fontWeight: 700,
+              fontSize: 13.5,
+              boxShadow: '0 6px 14px oklch(0.3 0.06 158 / 0.28)',
+            }}
+          >
+            <Icon name="sparkle" size={15} stroke={T.greenDeep} fill={T.greenDeep} />
+            Market
+          </button>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           <Stat label="Focused" value={formatDuration(today.productiveSeconds)} tint={T.greenSoft} />
