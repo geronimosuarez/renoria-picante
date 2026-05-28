@@ -550,11 +550,11 @@ function Peek({ sites, assign }: { sites: OnboardingSite[]; assign: Assign }) {
 
   // ── PUNTOS ──────────────────────────────────────────────────────────
   // En la extensión real esto lo maneja el tiempo: minutos en sitios
-  // productivos suman, minutos en sitios distractores restan. En el
-  // onboarding sembramos un bono fundacional que escala con cuántos sitios
-  // eligió hacer crecer. Reemplazar `points` por el valor real (CityState).
+  // productivos suman, minutos en sitios distractores restan. El usuario
+  // arranca en 0 (ver emptyCity en core/defaults.ts), así que mostramos ese
+  // valor real para que el preview coincida con el Home tras el onboarding.
   const NEXT_LANDMARK = 100;
-  const points = 20 + b * 6;
+  const points = 0;
   const shown = useCountUp(points, 1100);
   const pct = Math.min(100, (points / NEXT_LANDMARK) * 100);
 
@@ -698,7 +698,7 @@ function Peek({ sites, assign }: { sites: OnboardingSite[]; assign: Assign }) {
               color: 'oklch(0.5 0.04 158)',
             }}
           >
-            <span>Founding bonus</span>
+            <span>Day one</span>
             <span>Next landmark · {NEXT_LANDMARK} pts</span>
           </div>
         </div>
