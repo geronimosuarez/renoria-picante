@@ -17,8 +17,14 @@ export function CityCanvas({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const inst = createCity(el, { ruinLevel, seed });
-    return () => inst.dispose();
+    let inst: { dispose(): void } | undefined;
+    try {
+      inst = createCity(el, { ruinLevel, seed });
+    } catch (err) {
+      // Sin contexto WebGL (p.ej. en tests jsdom) la ciudad no se monta.
+      console.warn('Renoria: no se pudo montar la ciudad 3D', err);
+    }
+    return () => inst?.dispose();
   }, [ruinLevel, seed]);
 
   return <div ref={ref} style={{ width: '100%', height: '100%', ...style }} />;

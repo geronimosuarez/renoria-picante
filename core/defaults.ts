@@ -1,23 +1,7 @@
-import type { CategoryRule, CityState, FocusStats, PersistedState } from './types';
+import type { CityState, FocusStats, PersistedState } from './types';
 
-/** Reglas por defecto (out-of-the-box). El usuario puede sobrescribirlas. */
-export const DEFAULT_RULES: CategoryRule[] = [
-  { pattern: 'youtube.com', category: 'distracting' },
-  { pattern: 'facebook.com', category: 'distracting' },
-  { pattern: 'instagram.com', category: 'distracting' },
-  { pattern: 'twitter.com', category: 'distracting' },
-  { pattern: 'x.com', category: 'distracting' },
-  { pattern: 'tiktok.com', category: 'distracting' },
-  { pattern: 'reddit.com', category: 'distracting' },
-  { pattern: 'netflix.com', category: 'distracting' },
-  { pattern: 'twitch.tv', category: 'distracting' },
-  { pattern: 'github.com', category: 'productive' },
-  { pattern: 'stackoverflow.com', category: 'productive' },
-  { pattern: 'developer.mozilla.org', category: 'productive' },
-  { pattern: 'docs.google.com', category: 'productive' },
-  { pattern: 'notion.so', category: 'productive' },
-  { pattern: 'linear.app', category: 'productive' },
-];
+// Nota: no hay reglas de clasificación por defecto. La clasificación es 100%
+// dirigida por el usuario (ver core/classifier.ts y core/curated.ts).
 
 export const DEFAULT_IDLE_THRESHOLD_SECONDS = 60;
 

@@ -8,20 +8,21 @@ import { CityCanvas } from './CityCanvas';
 import { useCountUp } from './useCountUp';
 import { PRESET_SITES, makeCustomSite } from './sites';
 import type { OnboardingSite } from './sites';
+import type { SiteCategory } from '../../core/types';
 
 // Dirección 3 · "Living Map" — verdes de crecimiento, Bricolage Grotesque.
 // Desliza cada sitio: derecha lo construye (productive), izquierda lo drena
 // (distracting). Welcome → swipe deck → ciudad 3D con HUD de puntos.
+//
+// Modelo de datos (ver classifier-onboarding-design.md): el usuario solo
+// elige productive/distracting; todo lo que no ordene queda neutral (sin
+// regla). La salida es `Selections` keyeado por dominio.
 
 type Bucket = 'productive' | 'distracting';
 type Assign = Record<string, Bucket>;
 
-export interface OnboardingResult {
-  /** Sitios marcados como productivos (host). */
-  productive: string[];
-  /** Sitios marcados como distractores (host). */
-  distracting: string[];
-}
+/** Selecciones del onboarding keyeadas por dominio. */
+export type Selections = Record<string, SiteCategory>;
 
 // ── Nav ──────────────────────────────────────────────────────────────
 function Nav({ step, onBack }: { step: number; onBack: () => void }) {
@@ -733,7 +734,7 @@ function Peek({ sites, assign }: { sites: OnboardingSite[]; assign: Assign }) {
 }
 
 // ── Host ──────────────────────────────────────────────────────────────
-export function Onboarding({ onComplete }: { onComplete: (result: OnboardingResult) => void }) {
+export function Onboarding({ onComplete }: { onComplete: (selections: Selections) => void }) {
   const [step, setStep] = useState(0);
   const [assign, setAssign] = useState<Assign>({});
   const [custom, setCustom] = useState<OnboardingSite[]>([]);
@@ -764,13 +765,14 @@ export function Onboarding({ onComplete }: { onComplete: (result: OnboardingResu
   };
 
   const finish = () => {
-    const productive: string[] = [];
-    const distracting: string[] = [];
+    // Solo los sitios ordenados generan selección; los no ordenados (skipped)
+    // quedan fuera → neutrales → sin regla.
+    const selections: Selections = {};
     for (const s of sites) {
-      if (assign[s.id] === 'productive') productive.push(s.host);
-      else if (assign[s.id] === 'distracting') distracting.push(s.host);
+      const a = assign[s.id];
+      if (a) selections[s.host] = a;
     }
-    onComplete({ productive, distracting });
+    onComplete(selections);
   };
 
   const labels = ["Let's build", 'Meet my city', 'Enter Renoria'];
