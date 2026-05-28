@@ -23,7 +23,7 @@ export function domainFromUrl(url: string): string {
 export function classify(domain: string, userRules: CategoryRule[]): SiteCategory {
   if (!domain) return 'neutral';
   for (const rule of userRules) {
-    if (domain === rule.pattern || domain.endsWith('.' + rule.pattern)) {
+    if (domain === rule.pattern || domain.includes(rule.pattern)) {
       return rule.category;
     }
   }
