@@ -47,9 +47,6 @@ export interface CityState {
   buildings: CityBuilding[]; // construcciones que el usuario posee (en orden de adquisición)
 }
 
-/** Acción que el popup le pide al service worker (único escritor). */
-export type CityAction = { type: 'BUY_BUILDING' } | { type: 'REPAIR'; coins: number }; // monedas a gastar (reparación parcial)
-
 /** Estado persistido completo en chrome.storage.local. */
 export interface PersistedState {
   city: CityState;

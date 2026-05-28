@@ -1,13 +1,8 @@
 import { classify, domainFromUrl } from '../core/classifier';
 import { recordTime } from '../core/tracker';
-import {
-  applyDistractingTime,
-  applyProductiveTime,
-  buyBuilding,
-  repair,
-} from '../core/economy';
+import { applyProductiveTime } from '../core/economy';
 import { loadState, updateState } from '../storage/storage';
-import type { CityAction, CityState, SiteCategory } from '../core/types';
+import type { CityState, SiteCategory } from '../core/types';
 
 // `defineBackground` y `browser` son auto-importados por WXT.
 export default defineBackground(() => {
@@ -19,7 +14,7 @@ export default defineBackground(() => {
     return new Date(now).toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
   }
 
-  // Cola de escritura: serializa todos los updateState del SW (flush + acciones)
+  // Cola de escritura: serializa todos los updateState del SW (flush)
   // para que dos ciclos load→modify→save no se pisen y pierdan datos.
   let writeChain: Promise<unknown> = Promise.resolve();
   function enqueueWrite(task: () => Promise<unknown>): Promise<unknown> {
@@ -27,10 +22,10 @@ export default defineBackground(() => {
     return writeChain;
   }
 
-  // Efecto de la categoría del sitio sobre la ciudad.
+  // Efecto de la categoría del sitio sobre la ciudad: solo el foco productivo
+  // suma Renoria Points; distractores y neutrales no afectan el balance.
   function grow(city: CityState, category: SiteCategory, elapsed: number): CityState {
     if (category === 'productive') return applyProductiveTime(city, elapsed);
-    if (category === 'distracting') return applyDistractingTime(city, elapsed);
     return city;
   }
 
@@ -63,27 +58,6 @@ export default defineBackground(() => {
     activeDomain = tab?.url ? domainFromUrl(tab.url) : '';
     activeSince = now;
   }
-
-  // Acciones del usuario (popup). Pasan por la misma cola de escritura.
-  function handleAction(action: CityAction): Promise<unknown> {
-    if (!action || (action.type !== 'BUY_BUILDING' && action.type !== 'REPAIR')) {
-      return Promise.resolve();
-    }
-    const day = todayStr(Date.now());
-    return enqueueWrite(() =>
-      updateState(day, (state) => {
-        if (action.type === 'BUY_BUILDING') {
-          return { ...state, city: buyBuilding(state.city) };
-        }
-        const coins = typeof action.coins === 'number' ? action.coins : 0;
-        return { ...state, city: repair(state.city, coins) };
-      }),
-    );
-  }
-
-  browser.runtime.onMessage.addListener((message: CityAction) => {
-    void handleAction(message);
-  });
 
   browser.tabs.onActivated.addListener(() => void setActiveTab(Date.now()));
   browser.tabs.onUpdated.addListener((_id, changeInfo, tab) => {
