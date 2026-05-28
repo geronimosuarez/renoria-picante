@@ -1,8 +1,16 @@
 import { classify, domainFromUrl } from '../core/classifier';
 import { recordTime } from '../core/tracker';
 import { applyProductiveTime } from '../core/economy';
-import { loadState, updateState } from '../storage/storage';
-import type { CityState, SiteCategory } from '../core/types';
+import { badgeTextForCity } from '../core/badge';
+import { loadState, updateState, subscribe } from '../storage/storage';
+import type { CityState, SiteCategory, PersistedState } from '../core/types';
+
+// Pinta los puntos del usuario en el badge de la toolbar, tipo notificación.
+// Con 0 puntos ocultamos el badge (texto vacío) para no ensuciar el icono.
+function renderBadge(state: PersistedState) {
+  const text = Math.round(state.city.growthPoints) >= 1 ? badgeTextForCity(state.city) : '';
+  browser.action.setBadgeText({ text });
+}
 
 // `defineBackground` y `browser` son auto-importados por WXT.
 export default defineBackground(() => {
@@ -96,4 +104,16 @@ export default defineBackground(() => {
   });
 
   void setActiveTab(Date.now());
+
+  // Badge de la toolbar: color verde Renoria; texto blanco para contraste.
+  browser.action.setBadgeBackgroundColor({ color: '#2e7d4f' });
+  if (browser.action.setBadgeTextColor) {
+    browser.action.setBadgeTextColor({ color: '#ffffff' });
+  }
+
+  // Estado inicial al arrancar el service worker.
+  loadState(todayStr(Date.now())).then(renderBadge);
+
+  // Mantener el badge en sync con cada cambio de estado (puntos, etc.).
+  subscribe(renderBadge);
 });
